@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { getTodos, addTodo, updateTodo, deleteTodo } from "../api/TodoApi";
-import { Button, Input, Empty, message, Spin } from "antd";
+import { Button, Input, Empty, message, Spin, Typography, Card } from "antd";
 import { DeleteOutlined, CheckCircleTwoTone, PlusOutlined } from "@ant-design/icons";
 import "../index.css";
+
+const { Title } = Typography;
 
 export default function TodoList() {
   const [todos, setTodos] = useState([]);
@@ -13,20 +15,11 @@ export default function TodoList() {
     try {
       setLoading(true);
       const { data } = await getTodos();
-      console.log("Fetched todos:", data);
-
-      // ✅ Automatically handle both API response styles
-      if (Array.isArray(data)) {
-        setTodos(data);
-      } else if (data && Array.isArray(data.todos)) {
-        setTodos(data.todos);
-      } else {
-        setTodos([]); // fallback if no valid data
-      }
-    } catch (error) {
-      console.error("Error fetching todos:", error);
+      if (Array.isArray(data)) setTodos(data);
+      else if (data && Array.isArray(data.todos)) setTodos(data.todos);
+      else setTodos([]);
+    } catch {
       message.error("Failed to fetch todos");
-      setTodos([]);
     } finally {
       setLoading(false);
     }
@@ -68,13 +61,13 @@ export default function TodoList() {
   };
 
   return (
-    <div className="todo-container">
-      <div className="todo-card">
-        <h1 className="app-title">✨ My Todo Tracker</h1>
+    <div className="todo-wrapper">
+      <Card className="todo-card">
+        <Title level={2} className="app-title">📝 My Todo Tracker</Title>
 
         <div className="todo-input-group">
           <Input
-            placeholder="Add a new task..."
+            placeholder="Write a new task..."
             value={text}
             onChange={(e) => setText(e.target.value)}
             onPressEnter={handleAdd}
@@ -92,7 +85,7 @@ export default function TodoList() {
 
         {loading ? (
           <div style={{ marginTop: 50, textAlign: "center" }}>
-            <Spin tip="Loading tasks..." />
+            <Spin tip="Loading your tasks..." />
           </div>
         ) : Array.isArray(todos) && todos.length > 0 ? (
           <ul className="todo-list">
@@ -100,30 +93,27 @@ export default function TodoList() {
               <li
                 key={todo._id}
                 className={`todo-item ${todo.completed ? "completed" : ""}`}
-                onClick={() => handleToggle(todo)}
               >
-                <span className="todo-text">
+                <div className="todo-left" onClick={() => handleToggle(todo)}>
                   {todo.completed && (
-                    <CheckCircleTwoTone twoToneColor="#52c41a" />
-                  )}{" "}
-                  {todo.text}
-                </span>
+                    <CheckCircleTwoTone twoToneColor="#52c41a" className="check-icon" />
+                  )}
+                  <span className="todo-text">{todo.text}</span>
+                </div>
+
                 <Button
                   type="text"
                   icon={<DeleteOutlined />}
                   className="delete-btn"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDelete(todo._id);
-                  }}
+                  onClick={() => handleDelete(todo._id)}
                 />
               </li>
             ))}
           </ul>
         ) : (
-          <Empty description="No tasks yet!" style={{ marginTop: 50 }} />
+          <Empty description="No tasks yet! Add your first one ✨" style={{ marginTop: 50 }} />
         )}
-      </div>
+      </Card>
     </div>
   );
 }

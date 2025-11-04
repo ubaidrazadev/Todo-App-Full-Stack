@@ -1,8 +1,7 @@
-import "antd/dist/reset.css";
-import TodoList from "./components/TodoList";
+import 'antd/dist/reset.css';
+import TodoList from './components/TodoList';
 
-function App() {
-  return <TodoList />;
+
+export default function App(){
+return <TodoList />
 }
-
-export default App;
