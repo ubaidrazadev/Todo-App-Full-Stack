@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { getTodos, addTodo, updateTodo, deleteTodo } from "../api/TodoApi";
-import { Button, Input, message, Empty, Card, Spin, Typography } from "antd";
-import { PlusOutlined, DeleteOutlined, CheckCircleTwoTone } from "@ant-design/icons";
+import { Button, Input, Empty, message, Spin, Typography, Card } from "antd";
+import { DeleteOutlined, CheckCircleTwoTone, PlusOutlined } from "@ant-design/icons";
 import "../index.css";
 
 const { Title } = Typography;
@@ -11,20 +11,20 @@ export default function TodoList() {
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const loadTodos = async () => {
+  const fetchTodos = async () => {
     try {
       setLoading(true);
-      const data = await getTodos();
+      const { data } = await getTodos();
       setTodos(Array.isArray(data) ? data : []);
     } catch {
-      message.error("Failed to load tasks");
+      message.error("Failed to fetch todos");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    loadTodos();
+    fetchTodos();
   }, []);
 
   const handleAdd = async () => {
@@ -32,43 +32,44 @@ export default function TodoList() {
     try {
       await addTodo({ text });
       setText("");
-      loadTodos();
-      message.success("Task added successfully!");
+      fetchTodos();
+      message.success("Task added!");
     } catch {
-      message.error("Couldn't add task");
+      message.error("Error adding task");
     }
   };
 
   const handleToggle = async (todo) => {
     try {
       await updateTodo(todo._id, { completed: !todo.completed });
-      loadTodos();
+      fetchTodos();
     } catch {
-      message.error("Couldn't update task");
+      message.error("Error updating task");
     }
   };
 
   const handleDelete = async (id) => {
     try {
       await deleteTodo(id);
-      loadTodos();
-      message.success("Task deleted!");
+      fetchTodos();
+      message.success("Task deleted");
     } catch {
-      message.error("Couldn't delete task");
+      message.error("Error deleting task");
     }
   };
 
   return (
     <div className="todo-wrapper">
       <Card className="todo-card">
-        <Title level={2} className="app-title">✨ My Todo Tracker</Title>
+        <Title level={2} className="app-title">📝 My Todo Tracker</Title>
 
-        <div className="todo-input-section">
+        <div className="todo-input-group">
           <Input
-            placeholder="Add a new task..."
+            placeholder="Write a new task..."
             value={text}
             onChange={(e) => setText(e.target.value)}
             onPressEnter={handleAdd}
+            className="todo-input"
           />
           <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
             Add
@@ -76,10 +77,10 @@ export default function TodoList() {
         </div>
 
         {loading ? (
-          <Spin tip="Loading..." style={{ marginTop: 40 }} />
-        ) : todos.length === 0 ? (
-          <Empty description="No tasks yet!" style={{ marginTop: 50 }} />
-        ) : (
+          <div style={{ marginTop: 50, textAlign: "center" }}>
+            <Spin tip="Loading your tasks..." />
+          </div>
+        ) : Array.isArray(todos) && todos.length > 0 ? (
           <ul className="todo-list">
             {todos.map((todo) => (
               <li
@@ -87,18 +88,22 @@ export default function TodoList() {
                 className={`todo-item ${todo.completed ? "completed" : ""}`}
               >
                 <div className="todo-left" onClick={() => handleToggle(todo)}>
-                  {todo.completed && <CheckCircleTwoTone twoToneColor="#52c41a" />}
-                  <span>{todo.text}</span>
+                  {todo.completed && (
+                    <CheckCircleTwoTone twoToneColor="#52c41a" className="check-icon" />
+                  )}
+                  <span className="todo-text">{todo.text}</span>
                 </div>
                 <Button
                   type="text"
                   icon={<DeleteOutlined />}
-                  danger
+                  className="delete-btn"
                   onClick={() => handleDelete(todo._id)}
                 />
               </li>
             ))}
           </ul>
+        ) : (
+          <Empty description="No tasks yet! Add your first one ✨" style={{ marginTop: 50 }} />
         )}
       </Card>
     </div>
