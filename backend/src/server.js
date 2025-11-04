@@ -11,6 +11,10 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+app.get("/", (req, res) => {
+  res.send("✅ Backend is running successfully!");
+});
+
 app.use("/api/todos", todosRoutes);
 app.use(errorHandler);
 
