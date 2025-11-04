@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = "https://todo-app-full-stack-gilt.vercel.app/";
+const API_URL = "https://todo-app-full-stack-gilt.vercel.app/api/todos";
 
 export const getTodos = () => axios.get(API_URL);
 export const addTodo = (todo) => axios.post(API_URL, todo);

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { getTodos, addTodo, updateTodo, deleteTodo } from "../api/TodoApi";
-import { Button, Input, Empty, message } from "antd";
+import { Button, Input, Empty, message, Spin } from "antd";
 import { DeleteOutlined, CheckCircleTwoTone, PlusOutlined } from "@ant-design/icons";
 import "../index.css";
 
@@ -13,9 +13,20 @@ export default function TodoList() {
     try {
       setLoading(true);
       const { data } = await getTodos();
-      setTodos(data);
-    } catch {
+      console.log("Fetched todos:", data);
+
+      // ✅ Automatically handle both API response styles
+      if (Array.isArray(data)) {
+        setTodos(data);
+      } else if (data && Array.isArray(data.todos)) {
+        setTodos(data.todos);
+      } else {
+        setTodos([]); // fallback if no valid data
+      }
+    } catch (error) {
+      console.error("Error fetching todos:", error);
       message.error("Failed to fetch todos");
+      setTodos([]);
     } finally {
       setLoading(false);
     }
@@ -69,14 +80,21 @@ export default function TodoList() {
             onPressEnter={handleAdd}
             className="todo-input"
           />
-          <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd} className="add-btn">
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={handleAdd}
+            className="add-btn"
+          >
             Add
           </Button>
         </div>
 
-        {todos.length === 0 ? (
-          <Empty description="No tasks yet!" style={{ marginTop: 50 }} />
-        ) : (
+        {loading ? (
+          <div style={{ marginTop: 50, textAlign: "center" }}>
+            <Spin tip="Loading tasks..." />
+          </div>
+        ) : Array.isArray(todos) && todos.length > 0 ? (
           <ul className="todo-list">
             {todos.map((todo) => (
               <li
@@ -85,7 +103,10 @@ export default function TodoList() {
                 onClick={() => handleToggle(todo)}
               >
                 <span className="todo-text">
-                  {todo.completed && <CheckCircleTwoTone twoToneColor="#52c41a" />} {todo.text}
+                  {todo.completed && (
+                    <CheckCircleTwoTone twoToneColor="#52c41a" />
+                  )}{" "}
+                  {todo.text}
                 </span>
                 <Button
                   type="text"
@@ -99,6 +120,8 @@ export default function TodoList() {
               </li>
             ))}
           </ul>
+        ) : (
+          <Empty description="No tasks yet!" style={{ marginTop: 50 }} />
         )}
       </div>
     </div>
